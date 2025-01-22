@@ -2,7 +2,7 @@ class Snake(
         var position: Tile,
         var toward: Snake? = null
     ) {
-    private var dir = Direction.U
+    var dir = Direction.U
     
     fun goAhead(map: MapType) {
         position = toward?.position ?: when (dir) {
@@ -13,7 +13,5 @@ class Snake(
         }
     }
     
-    fun addBody(): Snake {
-        return Snake(this.position, this)
-    }
+    fun addBody(): Snake = Snake(this.position, this)
 }
