@@ -1,6 +1,6 @@
 enum class Difficulty {
     E,
-    M,
+    N,
     H,
     I
 }

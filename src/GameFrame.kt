@@ -8,11 +8,13 @@ import javax.swing.*
 import kotlin.system.exitProcess
 
 class GameFrame : JFrame(), KeyListener, ActionListener {
+
     private lateinit var map: MapType
     private lateinit var snakeHead: Snake
     private lateinit var snakeTail: Snake
     private lateinit var foodPosition: Tile
-    private var roundTime: Long = 0
+    private var settingWidget = SettingFrame(this)
+    var roundTime: Long = 800
 
     private val replayItem = JMenuItem("Reply")
     private val settingsItem = JMenuItem("Settings")
@@ -27,7 +29,6 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
         this.title = GAME_NAME
         initFrame()
         refreshFrame()
-        runGame()
         this.isResizable = false
         this.isVisible = true
     }
@@ -78,7 +79,7 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
     }
 
     private fun refreshFood(): Tile {
-        val randomMax = Settings.x * Settings.y - Settings.score - 3
+        val randomMax = Settings.x * Settings.y - Settings.score - 2
         var tileOrder = (0..randomMax).random()
         for (i in map) {
             for (j in i) {
@@ -92,13 +93,15 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
         return map[0][0]
     }
 
-    private fun refreshFrame() {
+    fun refreshFrame() {
         this.setSize(Settings.widgetWidth(), Settings.widgetHeight())
         map = newMap()
         snakeTail = initSnake()
         snakeHead = snakeTail.toward!!
         foodPosition = refreshFood()
+        Settings.score = 0
         this.repaint()
+        pauseGame()
     }
 
     private fun createDialog(s: String) = createDialog(arrayOf(s))
@@ -130,37 +133,58 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
         jDialog.isVisible = true
     }
 
-    private fun goNextTurn() {
+    fun goNextTurn() {
         var snakeBody = snakeTail
         var needRefresh = false
         if (snakeHead.position == foodPosition) {
             snakeTail = snakeTail.addBody()
             needRefresh = true
         }
-        snakeBody.position.snake= false
+        snakeBody.position.snake = false
         while (snakeBody.toward != null) {
-            snakeBody.goAhead(map)
-            snakeBody = snakeBody.toward!!
+            snakeBody.goAhead(map, this)
+            snakeBody = snakeBody.toward ?: snakeBody.also {
+                if (it.position.snake) {
+                    gameLose()
+                } else {
+                    it.position.snake = true
+                }
+            }
         }
-        if (needRefresh) foodPosition = refreshFood()
-        snakeBody.goAhead(map)
-        snakeBody.position.snake= true
+        if (needRefresh) {
+            if (Settings.score >= Settings.x * Settings.y - 2) gameWin()
+            foodPosition = refreshFood()
+            Settings.score += 1
+        }
+        snakeBody.goAhead(map, this)
+        snakeBody.position.snake = true
         repaint()
+    }
+
+    fun gameLose() {
+        pauseGame()
+        createDialog(arrayOf("You lose!", "Score: ${Settings.score}"))
+    }
+
+    private fun gameWin() {
+        pauseGame()
+        createDialog(arrayOf("You win!", "Score: ${Settings.score}"))
     }
 
     private fun pauseGame() {
         Settings.isPause = true
-        TODO()
+        this.repaint()
     }
 
     private fun runGame() {
         roundTime = when (Settings.difficulty) {
             Difficulty.E -> 1000
-            Difficulty.M -> 800
+            Difficulty.N -> 800
             Difficulty.H -> 600
             Difficulty.I -> 400
-        }.toLong()
+        }
         Settings.isPause = false
+        this.repaint()
     }
 
     override fun paint(g: Graphics?) {
@@ -181,7 +205,14 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
             }
         }
 
-        g!!.color = Colors.Snake
+        g!!.color = Colors.Food
+        g.fillArc(
+            foodPosition.getPaintX() + 3, foodPosition.getPaintY() + 3,
+            TILE_WIDTH - 10, TILE_WIDTH - 10,
+            0, 360
+        )
+
+        g.color = Colors.Snake
         var snakeBody: Snake? = snakeTail
         while (snakeBody != null) {
             val tile = snakeBody.position
@@ -192,13 +223,6 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
             )
             snakeBody = snakeBody.toward
         }
-
-        g.color = Colors.Food
-        g.fillArc(
-            foodPosition.getPaintX() + 3, foodPosition.getPaintY() + 3,
-            TILE_WIDTH - 10, TILE_WIDTH - 10,
-            0, 360
-        )
     }
 
     override fun keyTyped(e: KeyEvent?) {}
@@ -211,7 +235,7 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
         left  37
         right 39
         f 70
-        l 76
+        BAR 32
         */
         when (e!!.keyCode) {
             65, 37 -> snakeHead.dir = Direction.L
@@ -219,13 +243,14 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
             68, 39 -> snakeHead.dir = Direction.R
             83, 40 -> snakeHead.dir = Direction.D
             71 -> if (Settings.debug) goNextTurn()
+            32 -> if (Settings.isPause) runGame() else pauseGame()
         }
     }
 
     override fun keyReleased(e: KeyEvent?) {}
 
     override fun actionPerformed(e: ActionEvent?) {
-        repaint()
+        pauseGame()
         val obj = e!!.source
         when (obj) {
             replayItem -> refreshFrame()
@@ -240,6 +265,8 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
             aboutItem -> createDialog("https://github.com/SOR2171/Snakelin")
 
             settingsItem -> {
+                pauseGame()
+                settingWidget.isVisible = true
             }
 
             exitItem -> exitProcess(0)

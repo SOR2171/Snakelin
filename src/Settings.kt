@@ -1,10 +1,10 @@
 object Settings {
-    var x = 15
-    var y = 15
+    var x = MAP_X_DEFAULT
+    var y = MAP_Y_DEFAULT
     var score = 0
-    var isPause = false
-    var difficulty = Difficulty.M
+    var difficulty = Difficulty.N
     var debug = true
+    var isPause = debug
 
     fun widgetWidth() = x * TILE_WIDTH + BOARD * 2
     fun widgetHeight() = y * TILE_WIDTH + BOARD * 2 + UPPER_BOARD
