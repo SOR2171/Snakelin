@@ -234,7 +234,7 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
         down  40
         left  37
         right 39
-        f 70
+        g 71
         BAR 32
         */
         when (e!!.keyCode) {
@@ -257,8 +257,9 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
 
             tutorialItem -> createDialog(
                 arrayOf(
-                    "use wasd or arrow keys to change direction.",
-                    "use space bar or Pause to pause the game."
+                    "press w a s d or arrow keys to change direction.",
+                    "press space bar or Pause to pause the game.",
+                    "press g to go next round."
                 )
             )
 
