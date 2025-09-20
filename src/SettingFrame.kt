@@ -113,5 +113,6 @@ class SettingFrame(private val gf: GameFrame) : JFrame(), ActionListener {
             }
         }
         this.isVisible = false
+        gf.isVisible = true
     }
 }

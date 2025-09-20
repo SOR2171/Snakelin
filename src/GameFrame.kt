@@ -30,7 +30,8 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
         initFrame()
         refreshFrame()
         this.isResizable = false
-        this.isVisible = true
+//        this.isVisible = true
+        settingWidget.isVisible = true
     }
 
     private fun initFrame() {
@@ -257,9 +258,9 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
 
             tutorialItem -> createDialog(
                 arrayOf(
-                    "press w a s d or arrow keys to change direction.",
-                    "press space bar or Pause to pause the game.",
-                    "press g to go next round."
+                    "press W A S D or arrow keys to change direction.",
+                    "press SPACE BAR or Pause to pause the game.",
+                    "press G to go next round."
                 )
             )
 
@@ -268,6 +269,7 @@ class GameFrame : JFrame(), KeyListener, ActionListener {
             settingsItem -> {
                 pauseGame()
                 settingWidget.isVisible = true
+                this.isVisible = false
             }
 
             exitItem -> exitProcess(0)
